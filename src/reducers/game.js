@@ -1,5 +1,39 @@
 import { newShuffledPokerDeck, calculatePlayerScore } from '../cards';
 
+// Funções para localStorage
+const loadGameHistory = () => {
+  try {
+    // Check if localStorage is available (browser environment)
+    if (typeof localStorage === 'undefined') {
+      return [];
+    }
+    const saved = localStorage.getItem('blackjack-history');
+    return saved ? JSON.parse(saved) : [];
+  } catch (error) {
+    console.warn('Erro ao carregar histórico:', error);
+    return [];
+  }
+};
+
+const saveGameHistory = (history) => {
+  try {
+    // Check if localStorage is available (browser environment)
+    if (typeof localStorage === 'undefined') {
+      return;
+    }
+    localStorage.setItem('blackjack-history', JSON.stringify(history));
+  } catch (error) {
+    console.warn('Erro ao salvar histórico:', error);
+  }
+};
+
+const addToHistory = (newGame) => {
+  const history = loadGameHistory();
+  const updatedHistory = [newGame, ...history].slice(0, 25); // Máximo 25 jogadas
+  saveGameHistory(updatedHistory);
+  return updatedHistory;
+};
+
 export const statuses = {
   PLAYING: 'Playing',
   WIN: 'Win',
@@ -12,15 +46,18 @@ const initialState = {
   dealerScore: 0,
   playerHand: [],
   playerScore: 0,
-  status: statuses.PLAYING
+  status: statuses.PLAYING,
+  gameHistory: loadGameHistory()
 };
 
 const calculateOutcomeStatus = (playerScore, dealerScore) => {
-  if (playerScore === 21) return statuses.WIN;
-  if (playerScore > 21 || dealerScore === 21) return statuses.LOSE;
-  if (dealerScore > 21 || playerScore > dealerScore) return statuses.WIN;
+  if (playerScore === 21 && dealerScore !== 21) return statuses.WIN;
+  if (playerScore > 21) return statuses.LOSE;
+  if (dealerScore === 21 && playerScore !== 21) return statuses.LOSE;
+  if (dealerScore > 21) return statuses.WIN;
+  if (playerScore > dealerScore) return statuses.WIN;
   if (playerScore < dealerScore) return statuses.LOSE;
-  return statuses.PLAYING;
+  return statuses.WIN; // Tie goes to player
 };
 
 const revealDealerHand = (dealerHand) => {
@@ -65,10 +102,27 @@ const reducer = (state = initialState, action) => {
       };
 
     case 'OUTCOME':
+      const finalStatus = calculateOutcomeStatus(state.playerScore, state.dealerScore);
+      const gameResult = {
+        id: Date.now(), // ID único
+        playerScore: state.playerScore,
+        dealerScore: state.dealerScore,
+        result: finalStatus,
+        timestamp: new Date().toLocaleString('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      };
+
+      const updatedHistory = addToHistory(gameResult);
+
       return {
         ...state,
         dealerHand: revealDealerHand(state.dealerHand),
-        status: calculateOutcomeStatus(state.playerScore, state.dealerScore)
+        status: finalStatus,
+        gameHistory: updatedHistory
       };
     
       case 'QUIT':
@@ -81,7 +135,7 @@ const reducer = (state = initialState, action) => {
           status: ''
         }
 
-      case 'NEWGAME':
+      case 'NEW_GAME':
         return {
           ...state,
           drawPile: newShuffledPokerDeck(),
@@ -90,6 +144,13 @@ const reducer = (state = initialState, action) => {
           playerHand: [],
           playerScore: 0,
           status: statuses.PLAYING
+        }
+
+      case 'CLEAR_HISTORY':
+        saveGameHistory([]);
+        return {
+          ...state,
+          gameHistory: []
         }
 
     default:
