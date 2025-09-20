@@ -6,5 +6,5 @@ const scoreMapping = {
   };
   
   export const calculateCardScore = (value) => {
-    return scoreMapping[value] || parseInt(value); // Se não estiver no map, retorna o próprio valor
+    return scoreMapping[value] || parseInt(value, 10); // Se não estiver no map, retorna o próprio valor
   };

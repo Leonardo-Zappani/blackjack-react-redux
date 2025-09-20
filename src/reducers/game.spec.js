@@ -260,4 +260,50 @@ describe('Reducer', () => {
       store.getState().status.should.equal(statuses.WIN);
     });
   });
+
+  describe('CLEAR_HISTORY', () => {
+    it('clears the game history', () => {
+      const initialState = {
+        gameHistory: [
+          { id: 1, playerScore: 21, dealerScore: 18, result: 'Win', timestamp: '20/09 19:35' },
+          { id: 2, playerScore: 22, dealerScore: 19, result: 'Lose', timestamp: '20/09 19:36' }
+        ]
+      };
+      const store = createStore(reducer, initialState);
+
+      store.dispatch({ type: 'CLEAR_HISTORY' });
+
+      store.getState().gameHistory.should.be.empty;
+    });
+  });
+
+  describe('Game History', () => {
+    it('saves game result to history when OUTCOME is triggered', () => {
+      const initialState = {
+        playerScore: 21,
+        dealerScore: 18,
+        dealerHand: [{ ...ace, faceDown: true }, king],
+        gameHistory: []
+      };
+      const store = createStore(reducer, initialState);
+
+      store.dispatch({ type: 'OUTCOME' });
+
+      const state = store.getState();
+      state.gameHistory.should.have.length(1);
+      state.gameHistory[0].should.have.property('playerScore', 21);
+      state.gameHistory[0].should.have.property('dealerScore', 18);
+      state.gameHistory[0].should.have.property('result', 'Win');
+      state.gameHistory[0].should.have.property('timestamp');
+      state.gameHistory[0].should.have.property('id');
+    });
+
+    it('initializes with empty history in non-browser environment', () => {
+      const store = createStore(reducer);
+
+      store.getState().gameHistory.should.be.an('array');
+      store.getState().gameHistory.should.be.empty;
+    });
+  });
+
 });

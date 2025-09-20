@@ -1,5 +1,409 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: sans-serif;
+  font-family: 'Georgia', serif;
+  background: linear-gradient(135deg, #1a4a2e 0%, #0f2d19 50%, #1a4a2e 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    radial-gradient(circle at 20% 80%, rgba(255,255,255,0.02) 1px, transparent 1px),
+    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.02) 1px, transparent 1px),
+    radial-gradient(circle at 40% 40%, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 50px 50px, 80px 80px, 30px 30px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+#root {
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  background: rgba(0, 50, 25, 0.8);
+  border-radius: 20px;
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.6),
+    inset 0 2px 8px rgba(255,215,0,0.1);
+  border: 3px solid #daa520;
+  min-height: 80vh;
+  backdrop-filter: blur(5px);
+}
+
+.blackjack-table {
+  background: radial-gradient(ellipse at center, #2d7a2d 0%, #1a4a1a 70%, #0d2d0d 100%);
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow:
+    inset 0 4px 20px rgba(0,0,0,0.3),
+    0 4px 15px rgba(0,0,0,0.5);
+  border: 2px solid #4a7c4a;
+  position: relative;
+  overflow: hidden;
+}
+
+.blackjack-table::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    linear-gradient(90deg, transparent 49%, rgba(255,255,255,0.02) 50%, transparent 51%),
+    linear-gradient(0deg, transparent 49%, rgba(255,255,255,0.02) 50%, transparent 51%);
+  background-size: 20px 20px;
+  pointer-events: none;
+}
+
+/* Estilos para botões de casino */
+button {
+  background: linear-gradient(145deg, #daa520, #b8860b);
+  border: 2px solid #ffd700;
+  border-radius: 25px;
+  padding: 12px 24px;
+  font-family: 'Georgia', serif;
+  font-weight: bold;
+  color: #2d1810;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-shadow: 0 1px 2px rgba(255,255,255,0.3);
+  box-shadow:
+    0 4px 8px rgba(0,0,0,0.3),
+    inset 0 2px 4px rgba(255,255,255,0.3);
+  margin: 5px;
+  font-size: 14px;
+}
+
+button:hover:not(:disabled) {
+  background: linear-gradient(145deg, #ffd700, #daa520);
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 12px rgba(0,0,0,0.4),
+    inset 0 2px 4px rgba(255,255,255,0.4);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.3),
+    inset 0 1px 2px rgba(0,0,0,0.2);
+}
+
+button:disabled {
+  background: linear-gradient(145deg, #666, #444);
+  border-color: #555;
+  color: #999;
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+}
+
+/* Estilos condicionais para pontuações */
+.score-win {
+  color: #4ade80;
+  text-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+  font-weight: bold;
+}
+
+.score-lose {
+  color: #f87171;
+  text-shadow: 0 0 10px rgba(248, 113, 113, 0.5);
+  font-weight: bold;
+}
+
+.score-tie {
+  color: #fbbf24;
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+  font-weight: bold;
+}
+
+/* Estilos base para texto */
+div, label {
+  color: #f0f0f0;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+}
+
+label {
+  font-weight: bold;
+  font-size: 16px;
+  color: #daa520;
+}
+
+/* Estilos para as cartas */
+.playing-card {
+  display: inline-block;
+  margin: 4px;
+  padding: 8px;
+  background: white;
+  border-radius: 8px;
+  box-shadow:
+    0 4px 8px rgba(0,0,0,0.3),
+    0 1px 3px rgba(0,0,0,0.2);
+  border: 1px solid #ddd;
+  transition: transform 0.2s ease;
+  position: relative;
+}
+
+.playing-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 12px rgba(0,0,0,0.4),
+    0 2px 5px rgba(0,0,0,0.3);
+}
+
+.card-back {
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #1e3a8a 100%);
+}
+
+.card-emoji {
+  font-size: 48px;
+  line-height: 1;
+  display: block;
+  text-align: center;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.card-back .card-emoji {
+  color: white;
+  text-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+
+/* Layout para as mãos */
+.hand-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+  justify-content: center;
+}
+
+/* Área do dealer */
+.dealer-area {
+  background: rgba(0,0,0,0.2);
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 30px;
+  border: 2px solid rgba(218, 165, 32, 0.3);
+  text-align: center;
+}
+
+/* Área do jogador */
+.player-area {
+  background: rgba(0,0,0,0.2);
+  border-radius: 15px;
+  padding: 20px;
+  margin-top: 30px;
+  border: 2px solid rgba(218, 165, 32, 0.5);
+  text-align: center;
+}
+
+/* Área central para controles */
+.controls-area {
+  text-align: center;
+  padding: 20px 0;
+  border-top: 1px solid rgba(218, 165, 32, 0.3);
+  border-bottom: 1px solid rgba(218, 165, 32, 0.3);
+}
+
+/* Histórico de jogadas */
+.game-history {
+  margin-top: 30px;
+  padding: 20px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 15px;
+  border: 2px solid rgba(218, 165, 32, 0.3);
+  backdrop-filter: blur(5px);
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.history-header h3 {
+  margin: 0;
+  color: #daa520;
+  font-size: 20px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.7);
+}
+
+.history-stats {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.stat-wins, .stat-losses, .stat-winrate {
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+}
+
+.stat-wins {
+  background: rgba(74, 222, 128, 0.2);
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  color: #4ade80;
+}
+
+.stat-losses {
+  background: rgba(248, 113, 113, 0.2);
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  color: #f87171;
+}
+
+.stat-winrate {
+  background: rgba(251, 191, 36, 0.2);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  color: #fbbf24;
+}
+
+.clear-history-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  background: linear-gradient(145deg, #dc2626, #b91c1c);
+  border: 1px solid #ef4444;
+  color: white;
+  margin: 0;
+  opacity: 0.8;
+  transition: all 0.2s ease;
+}
+
+.clear-history-btn:hover:not(:disabled) {
+  background: linear-gradient(145deg, #ef4444, #dc2626);
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.history-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.2);
+  padding: 10px;
+}
+
+.history-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.history-list::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.1);
+  border-radius: 4px;
+}
+
+.history-list::-webkit-scrollbar-thumb {
+  background: rgba(218, 165, 32, 0.5);
+  border-radius: 4px;
+}
+
+.history-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(218, 165, 32, 0.7);
+}
+
+.history-item {
+  display: grid;
+  grid-template-columns: 40px 80px 1fr 100px;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: all 0.2s ease;
+}
+
+.history-item:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(218, 165, 32, 0.3);
+  transform: translateX(3px);
+}
+
+.history-item.win {
+  border-left: 3px solid #4ade80;
+}
+
+.history-item.lose {
+  border-left: 3px solid #f87171;
+}
+
+.game-number {
+  font-weight: bold;
+  color: #daa520;
+  font-size: 12px;
+}
+
+.game-timestamp {
+  font-size: 11px;
+  color: #999;
+  font-family: 'Courier New', monospace;
+}
+
+.game-scores {
+  font-size: 12px;
+  color: #f0f0f0;
+}
+
+.game-result {
+  font-size: 11px;
+  font-weight: bold;
+  text-align: center;
+  padding: 4px 8px;
+  border-radius: 12px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+}
+
+.game-result.win {
+  background: rgba(74, 222, 128, 0.2);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.4);
+}
+
+.game-result.lose {
+  background: rgba(248, 113, 113, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+  .history-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .history-stats {
+    justify-content: center;
+  }
+
+  .history-item {
+    grid-template-columns: 30px 70px 1fr 80px;
+    gap: 8px;
+    font-size: 11px;
+  }
+
+  .game-scores {
+    font-size: 10px;
+  }
+
+  .game-result {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
 }
