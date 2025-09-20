@@ -94,4 +94,24 @@ describe('Actions', () => {
     });
   });
 
+  describe('newGame()', () => {
+    it('dispatches NEW_GAME action', () => {
+      actions.newGame()(dispatch, getStateStub);
+
+      capturedArgs.should.eql([
+        { type: 'NEW_GAME' }
+      ]);
+    });
+  });
+
+  describe('clearHistory()', () => {
+    it('dispatches CLEAR_HISTORY action', () => {
+      actions.clearHistory()(dispatch, getStateStub);
+
+      capturedArgs.should.eql([
+        { type: 'CLEAR_HISTORY' }
+      ]);
+    });
+  });
+
 });

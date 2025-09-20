@@ -28,5 +28,9 @@ export const quit = () => (dispatch, getState) => {
 };
 
 export const newGame = () => (dispatch, getState) => {
-  dispatch({ type: 'NEWGAME' });
+  dispatch({ type: 'NEW_GAME' });
+};
+
+export const clearHistory = () => (dispatch, getState) => {
+  dispatch({ type: 'CLEAR_HISTORY' });
 };
