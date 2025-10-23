@@ -97,7 +97,7 @@ const reducer = (state = initialState, action) => {
     case 'DEAL':
       return dealCards(state);
 
-    case 'HIT':
+    case 'HIT': {
       const [drawnCard, ...remainingPile] = state.drawPile;
       const hitHandKey = `${action.who}Hand`;
       const hitHand = state[hitHandKey];
@@ -107,6 +107,7 @@ const reducer = (state = initialState, action) => {
         drawPile: remainingPile,
         [hitHandKey]: [...hitHand, drawnCard]
       };
+    }
 
     case 'TALLY':
       return {
@@ -115,12 +116,8 @@ const reducer = (state = initialState, action) => {
         playerScore: calculatePlayerScore(state.playerHand)
       };
 
-    case 'OUTCOME':
-      const finalStatus = calculateOutcomeStatus(
-        state.playerScore,
-        state.dealerScore
-      );
-
+    case 'OUTCOME': {
+      const finalStatus = calculateOutcomeStatus(state.playerScore, state.dealerScore);
       const gameResult = {
         id: Date.now(), // ID único
         playerScore: state.playerScore,
@@ -142,6 +139,7 @@ const reducer = (state = initialState, action) => {
         status: finalStatus,
         gameHistory: updatedHistory
       };
+    }
 
     case 'QUIT':
       return {

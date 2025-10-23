@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import * as actions from '../actions';
 import { statuses } from '../reducers/game';
@@ -56,6 +57,14 @@ export const Card = ({ color, face, faceDown, value, suit }) => {
   );
 };
 
+Card.propTypes = {
+  color: PropTypes.string,
+  face: PropTypes.string,
+  faceDown: PropTypes.bool,
+  value: PropTypes.string,
+  suit: PropTypes.string
+};
+
 export const Hand = ({ label, cards }) =>
   <div>
     <label>{ label }</label>
@@ -72,6 +81,17 @@ export const Hand = ({ label, cards }) =>
       )}
     </div>
   </div>;
+
+Hand.propTypes = {
+  label: PropTypes.string.isRequired,
+  cards: PropTypes.arrayOf(PropTypes.shape({
+    face: PropTypes.string,
+    faceDown: PropTypes.bool,
+    color: PropTypes.string,
+    value: PropTypes.string,
+    suit: PropTypes.string
+  })).isRequired
+};
 
 const getScoreClass = (score, isPlayer, gameStatus) => {
   if (gameStatus === statuses.PLAYING) return '';
@@ -141,13 +161,121 @@ export const GameHistory = ({ history, onClearHistory }) => {
   );
 };
 
+GameHistory.propTypes = {
+  history: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    playerScore: PropTypes.number.isRequired,
+    dealerScore: PropTypes.number.isRequired,
+    result: PropTypes.string.isRequired,
+    timestamp: PropTypes.string.isRequired
+  })),
+  onClearHistory: PropTypes.func.isRequired
+};
+
+// Extracted component: DealerArea
+export const DealerArea = ({ dealerHand, dealerScore, status }) => (
+  <div className="dealer-area">
+    <Hand label="🎰 Dealer" cards={dealerHand} />
+    <div className={getScoreClass(dealerScore, false, status)}>
+      Pontuação do Dealer: {
+        status === statuses.PLAYING
+          ? '?'
+          : dealerScore
+      }
+    </div>
+  </div>
+);
+
+DealerArea.propTypes = {
+  dealerHand: PropTypes.array.isRequired,
+  dealerScore: PropTypes.number.isRequired,
+  status: PropTypes.string.isRequired
+};
+
+// Extracted component: GameControls
+export const GameControls = ({
+  drawPile,
+  dealerHand,
+  status,
+  deal,
+  hit,
+  stand,
+  quit,
+  newGame
+}) => (
+  <div className="controls-area">
+    <div>
+      <button disabled={drawPile && drawPile.length === 0} onClick={deal}>
+        🎯 Deal
+      </button>
+      <button
+        disabled={dealerHand.length === 0 || status !== statuses.PLAYING || (drawPile && drawPile.length === 0)}
+        onClick={() => hit('player')}
+      >
+        🃏 Hit
+      </button>
+      <button
+        disabled={dealerHand.length === 0 || status !== statuses.PLAYING || (drawPile && drawPile.length === 0)}
+        onClick={stand}
+      >
+        ✋ Stand
+      </button>
+      <button onClick={quit}>
+        🚪 Quit
+      </button>
+    </div>
+
+    {drawPile && drawPile.length === 0 && (
+      <div style={{ marginTop: '15px', color: '#ff6b6b' }}>
+        <strong>Deck vazio!</strong>
+        <button onClick={newGame} style={{ marginLeft: '10px' }}>
+          🔄 Novo Jogo
+        </button>
+      </div>
+    )}
+
+    {status !== statuses.PLAYING && (
+      <div style={{ marginTop: '15px', fontSize: '18px', fontWeight: 'bold' }}>
+        {getResultMessage(status)}
+      </div>
+    )}
+  </div>
+);
+
+GameControls.propTypes = {
+  drawPile: PropTypes.array,
+  dealerHand: PropTypes.array.isRequired,
+  status: PropTypes.string.isRequired,
+  deal: PropTypes.func.isRequired,
+  hit: PropTypes.func.isRequired,
+  stand: PropTypes.func.isRequired,
+  quit: PropTypes.func.isRequired,
+  newGame: PropTypes.func.isRequired
+};
+
+// Extracted component: PlayerArea
+export const PlayerArea = ({ playerHand, playerScore, status }) => (
+  <div className="player-area">
+    <Hand label="👤 Sua Mão" cards={playerHand} />
+    <div className={getScoreClass(playerScore, true, status)}>
+      Sua Pontuação: {playerScore}
+    </div>
+  </div>
+);
+
+PlayerArea.propTypes = {
+  playerHand: PropTypes.array.isRequired,
+  playerScore: PropTypes.number.isRequired,
+  status: PropTypes.string.isRequired
+};
+
 export const BlackjackGame = ({
-    resetGame,
-    startNewRound,
-    drawCard,
-    finishTurn,
-    quitGame,
-    clearGameHistory,
+    newGame,
+    deal,
+    hit,
+    stand,
+    quit,
+    clearHistory,
     drawPile = [{}], // Non-empty to avoid showing restart button in tests
     dealerHand = [{}], // Non-empty to enable Hit/Stand buttons in tests
     playerHand = [],
@@ -157,65 +285,60 @@ export const BlackjackGame = ({
     gameHistory = []
 }) =>
   <div className="blackjack-table">
-    {/* Área do Dealer */}
-    <div className="dealer-area">
-      <Hand label="🎰 Dealer" cards={ dealerHand } />
-      <div className={getScoreClass(dealerScore, false, status)}>
-        Pontuação do Dealer: {
-          status === statuses.PLAYING
-              ? '?'
-              : dealerScore
-        }
-      </div>
-    </div>
+    <DealerArea
+      dealerHand={dealerHand}
+      dealerScore={dealerScore}
+      status={status}
+    />
 
-    {/* Controles Centrais */}
-    <div className="controls-area">
-      <div>
-        <button disabled={drawPile && drawPile.length === 0} onClick={startNewRound}>
-          🎯 Deal
-        </button>
-        <button disabled={dealerHand.length === 0 || status !== statuses.PLAYING || (drawPile && drawPile.length === 0)} onClick={() => drawCard('player')}>
-          🃏 Hit
-        </button>
-        <button disabled={dealerHand.length === 0 || status !== statuses.PLAYING || (drawPile && drawPile.length === 0)} onClick={finishTurn}>
-          ✋ Stand
-        </button>
-        <button onClick={quitGame}>
-          🚪 Quit
-        </button>
-      </div>
+    <GameControls
+      drawPile={drawPile}
+      dealerHand={dealerHand}
+      status={status}
+      deal={deal}
+      hit={hit}
+      stand={stand}
+      quit={quit}
+      newGame={newGame}
+    />
 
-      { drawPile && drawPile.length === 0 && (
-        <div style={{ marginTop: '15px', color: '#ff6b6b' }}>
-          <strong>Deck vazio!</strong>
-          <button onClick={resetGame} style={{ marginLeft: '10px' }}>
-            🔄 Novo Jogo
-          </button>
-        </div>
-      )}
+    <PlayerArea
+      playerHand={playerHand}
+      playerScore={playerScore}
+      status={status}
+    />
 
-      {status !== statuses.PLAYING && (
-        <div style={{ marginTop: '15px', fontSize: '18px', fontWeight: 'bold' }}>
-          {getResultMessage(status)}
-        </div>
-      )}
-    </div>
-
-    {/* Área do Jogador */}
-    <div className="player-area">
-      <Hand label="👤 Sua Mão" cards={ playerHand } />
-      <div className={getScoreClass(playerScore, true, status)}>
-        Sua Pontuação: { playerScore }
-      </div>
-    </div>
-
-    {/* Histórico Completo */}
     <GameHistory
       history={gameHistory}
-      onClearHistory={clearGameHistory}
+      onClearHistory={clearHistory}
     />
   </div>;
+
+BlackjackGame.propTypes = {
+  newGame: PropTypes.func.isRequired,
+  deal: PropTypes.func.isRequired,
+  hit: PropTypes.func.isRequired,
+  stand: PropTypes.func.isRequired,
+  quit: PropTypes.func.isRequired,
+  clearHistory: PropTypes.func.isRequired,
+  drawPile: PropTypes.array,
+  dealerHand: PropTypes.array,
+  playerHand: PropTypes.array,
+  dealerScore: PropTypes.number,
+  playerScore: PropTypes.number,
+  status: PropTypes.string,
+  gameHistory: PropTypes.array
+};
+
+BlackjackGame.defaultProps = {
+  drawPile: [{}],
+  dealerHand: [{}],
+  playerHand: [],
+  dealerScore: 0,
+  playerScore: 0,
+  status: statuses.PLAYING,
+  gameHistory: []
+};
 
 const mapStateToProps = (state) => state;
 
