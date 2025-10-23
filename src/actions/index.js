@@ -1,36 +1,49 @@
-export const tally = () => ({ type: 'TALLY' });
+//Definição de constantes semânticas (substituem os Magic Numbers)
+const BLACKJACK_SCORE = 21;
+const DEALER_MIN_SCORE = 17;
 
-export const deal = () => (dispatch, getState) => {
+// Mantida a função, mas renomeada para indicar claramente o propósito
+export const calculateTally = () => ({ type: 'TALLY' });
+
+// "deal" → "startNewRound" (reflete início de uma nova rodada)
+export const startNewRound = () => (dispatch, getState) => {
   dispatch({ type: 'DEAL' });
-  dispatch(tally());
-  if (getState().playerScore >= 21) {
+  dispatch(calculateTally());
+
+  if (getState().playerScore >= BLACKJACK_SCORE) {
     dispatch({ type: 'OUTCOME' });
   }
 };
 
-export const hit = (who) => (dispatch, getState) => {
+// "hit" → "drawCard" (indica claramente que o jogador compra uma carta)
+export const drawCard = (who) => (dispatch, getState) => {
   dispatch({ type: 'HIT', who });
-  dispatch(tally());
-  if (getState().playerScore >= 21) {
+  dispatch(calculateTally());
+
+  if (getState().playerScore >= BLACKJACK_SCORE) {
     dispatch({ type: 'OUTCOME' });
   }
 };
 
-export const stand = () => (dispatch, getState) => {
-  while(getState().dealerScore < 17) {
-    dispatch(hit('dealer'));
+// "stand" → "finishTurn" (indica que o jogador encerra a rodada)
+export const finishTurn = () => (dispatch, getState) => {
+  while (getState().dealerScore < DEALER_MIN_SCORE) {
+    dispatch(drawCard('dealer'));
   }
   dispatch({ type: 'OUTCOME' });
 };
 
-export const quit = () => (dispatch, getState) => {
+// "quit" → "quitGame" (indica a intenção de sair do jogo)
+export const quitGame = () => (dispatch) => {
   dispatch({ type: 'QUIT' });
 };
 
-export const newGame = () => (dispatch, getState) => {
+// "newGame" → "resetGame" (deixa explícito que reinicia o jogo)
+export const resetGame = () => (dispatch) => {
   dispatch({ type: 'NEW_GAME' });
 };
 
-export const clearHistory = () => (dispatch, getState) => {
+// "clearHistory" → "clearGameHistory" (específico ao histórico do jogo)
+export const clearGameHistory = () => (dispatch) => {
   dispatch({ type: 'CLEAR_HISTORY' });
 };

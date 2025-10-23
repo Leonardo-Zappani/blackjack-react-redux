@@ -1,9 +1,12 @@
 import { newShuffledPokerDeck, calculatePlayerScore } from '../cards';
 
-// Funções para localStorage
+//Constantes semânticas (substituem números fixos)
+const BLACKJACK_SCORE = 21;
+const MAX_GAME_HISTORY = 25;
+const PLAYER_TIE_WINS = true; // deixa explícito o comportamento de empate
+
 const loadGameHistory = () => {
   try {
-    // Check if localStorage is available (browser environment)
     if (typeof localStorage === 'undefined') {
       return [];
     }
@@ -17,7 +20,6 @@ const loadGameHistory = () => {
 
 const saveGameHistory = (history) => {
   try {
-    // Check if localStorage is available (browser environment)
     if (typeof localStorage === 'undefined') {
       return;
     }
@@ -29,7 +31,7 @@ const saveGameHistory = (history) => {
 
 const addToHistory = (newGame) => {
   const history = loadGameHistory();
-  const updatedHistory = [newGame, ...history].slice(0, 25); // Máximo 25 jogadas
+  const updatedHistory = [newGame, ...history].slice(0, MAX_GAME_HISTORY);
   saveGameHistory(updatedHistory);
   return updatedHistory;
 };
@@ -51,17 +53,29 @@ const initialState = {
 };
 
 const calculateOutcomeStatus = (playerScore, dealerScore) => {
-  if (playerScore === 21 && dealerScore !== 21) return statuses.WIN;
-  if (playerScore > 21) return statuses.LOSE;
-  if (dealerScore === 21 && playerScore !== 21) return statuses.LOSE;
-  if (dealerScore > 21) return statuses.WIN;
-  if (playerScore > dealerScore) return statuses.WIN;
-  if (playerScore < dealerScore) return statuses.LOSE;
-  return statuses.WIN; // Tie goes to player
+  if (playerScore === BLACKJACK_SCORE && dealerScore !== BLACKJACK_SCORE)
+    return statuses.WIN;
+
+  if (playerScore > BLACKJACK_SCORE)
+    return statuses.LOSE;
+
+  if (dealerScore === BLACKJACK_SCORE && playerScore !== BLACKJACK_SCORE)
+    return statuses.LOSE;
+
+  if (dealerScore > BLACKJACK_SCORE)
+    return statuses.WIN;
+
+  if (playerScore > dealerScore)
+    return statuses.WIN;
+
+  if (playerScore < dealerScore)
+    return statuses.LOSE;
+
+  return PLAYER_TIE_WINS ? statuses.WIN : statuses.LOSE;
 };
 
 const revealDealerHand = (dealerHand) => {
-  const turnAllFaceDown =  c => ({ ...c, faceDown: false });
+  const turnAllFaceDown = c => ({ ...c, faceDown: false });
   return dealerHand.map(turnAllFaceDown);
 };
 
@@ -102,7 +116,11 @@ const reducer = (state = initialState, action) => {
       };
 
     case 'OUTCOME':
-      const finalStatus = calculateOutcomeStatus(state.playerScore, state.dealerScore);
+      const finalStatus = calculateOutcomeStatus(
+        state.playerScore,
+        state.dealerScore
+      );
+
       const gameResult = {
         id: Date.now(), // ID único
         playerScore: state.playerScore,
@@ -124,34 +142,34 @@ const reducer = (state = initialState, action) => {
         status: finalStatus,
         gameHistory: updatedHistory
       };
-    
-      case 'QUIT':
-        return {
-          ...state,
-          dealerHand: [],
-          playerHand: [],
-          dealerScore: 0,
-          playerScore: 0,
-          status: ''
-        }
 
-      case 'NEW_GAME':
-        return {
-          ...state,
-          drawPile: newShuffledPokerDeck(),
-          dealerHand: [],
-          dealerScore: 0,
-          playerHand: [],
-          playerScore: 0,
-          status: statuses.PLAYING
-        }
+    case 'QUIT':
+      return {
+        ...state,
+        dealerHand: [],
+        playerHand: [],
+        dealerScore: 0,
+        playerScore: 0,
+        status: ''
+      };
 
-      case 'CLEAR_HISTORY':
-        saveGameHistory([]);
-        return {
-          ...state,
-          gameHistory: []
-        }
+    case 'NEW_GAME':
+      return {
+        ...state,
+        drawPile: newShuffledPokerDeck(),
+        dealerHand: [],
+        dealerScore: 0,
+        playerHand: [],
+        playerScore: 0,
+        status: statuses.PLAYING
+      };
+
+    case 'CLEAR_HISTORY':
+      saveGameHistory([]);
+      return {
+        ...state,
+        gameHistory: []
+      };
 
     default:
       return state;

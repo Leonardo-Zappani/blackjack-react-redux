@@ -55,9 +55,9 @@ describe('Components', () => {
       const stub3 = sinon.stub();
       const wrapper = shallow(
           <BlackjackGame
-              deal={ stub1 }
-              hit={ stub2 }
-              stand={ stub3 }
+              startNewRound={ stub1 }
+              drawCard={ stub2 }
+              finishTurn={ stub3 }
           />
       );
 

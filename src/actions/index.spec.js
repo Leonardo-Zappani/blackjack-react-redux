@@ -10,7 +10,7 @@ describe('Actions', () => {
     capturedArgs = [];
     dispatch = (thunk) => {
       if (typeof thunk === 'function') {
-        thunk(dispatch, () => ({ playerScore: 0 }));
+        thunk(dispatch, () => ({ playerScore: 0, dealerScore: 15 }));
       } else {
         capturedArgs.push(thunk);
       }
@@ -94,9 +94,19 @@ describe('Actions', () => {
     });
   });
 
+  describe('quit()', () => {
+    it('dispatches QUIT action', () => {
+      actions.quit()(dispatch);
+
+      capturedArgs.should.eql([
+        { type: 'QUIT' }
+      ]);
+    });
+  });
+
   describe('newGame()', () => {
     it('dispatches NEW_GAME action', () => {
-      actions.newGame()(dispatch, getStateStub);
+      actions.newGame()(dispatch);
 
       capturedArgs.should.eql([
         { type: 'NEW_GAME' }
@@ -106,12 +116,11 @@ describe('Actions', () => {
 
   describe('clearHistory()', () => {
     it('dispatches CLEAR_HISTORY action', () => {
-      actions.clearHistory()(dispatch, getStateStub);
+      actions.clearHistory()(dispatch);
 
       capturedArgs.should.eql([
         { type: 'CLEAR_HISTORY' }
       ]);
     });
   });
-
 });

@@ -142,12 +142,12 @@ export const GameHistory = ({ history, onClearHistory }) => {
 };
 
 export const BlackjackGame = ({
-    newGame,
-    deal,
-    hit,
-    stand,
-    quit,
-    clearHistory,
+    resetGame,
+    startNewRound,
+    drawCard,
+    finishTurn,
+    quitGame,
+    clearGameHistory,
     drawPile = [{}], // Non-empty to avoid showing restart button in tests
     dealerHand = [{}], // Non-empty to enable Hit/Stand buttons in tests
     playerHand = [],
@@ -172,16 +172,16 @@ export const BlackjackGame = ({
     {/* Controles Centrais */}
     <div className="controls-area">
       <div>
-        <button disabled={drawPile && drawPile.length === 0} onClick={deal}>
+        <button disabled={drawPile && drawPile.length === 0} onClick={startNewRound}>
           🎯 Deal
         </button>
-        <button disabled={dealerHand.length === 0 || status !== statuses.PLAYING || (drawPile && drawPile.length === 0)} onClick={() => hit('player')}>
+        <button disabled={dealerHand.length === 0 || status !== statuses.PLAYING || (drawPile && drawPile.length === 0)} onClick={() => drawCard('player')}>
           🃏 Hit
         </button>
-        <button disabled={dealerHand.length === 0 || status !== statuses.PLAYING || (drawPile && drawPile.length === 0)} onClick={stand}>
+        <button disabled={dealerHand.length === 0 || status !== statuses.PLAYING || (drawPile && drawPile.length === 0)} onClick={finishTurn}>
           ✋ Stand
         </button>
-        <button onClick={quit}>
+        <button onClick={quitGame}>
           🚪 Quit
         </button>
       </div>
@@ -189,7 +189,7 @@ export const BlackjackGame = ({
       { drawPile && drawPile.length === 0 && (
         <div style={{ marginTop: '15px', color: '#ff6b6b' }}>
           <strong>Deck vazio!</strong>
-          <button onClick={newGame} style={{ marginLeft: '10px' }}>
+          <button onClick={resetGame} style={{ marginLeft: '10px' }}>
             🔄 Novo Jogo
           </button>
         </div>
@@ -213,7 +213,7 @@ export const BlackjackGame = ({
     {/* Histórico Completo */}
     <GameHistory
       history={gameHistory}
-      onClearHistory={clearHistory}
+      onClearHistory={clearGameHistory}
     />
   </div>;
 
