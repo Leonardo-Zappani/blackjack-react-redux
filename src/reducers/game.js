@@ -80,8 +80,11 @@ const dealCards = (state) => {
 
 const reducer = (state = initialState, action) => {
   switch (action.type) {
-    case 'DEAL':
-      return dealCards(state);
+   case 'DEAL':
+  return dealCards({
+    ...state,
+    drawPile: newShuffledPokerDeck() // 🔁 novo deck embaralhado a cada rodada
+  });
 
     case 'HIT': {
       if (!state.drawPile || state.drawPile.length === 0) return state;
