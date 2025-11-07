@@ -1,49 +1,73 @@
-//Definição de constantes semânticas (substituem os Magic Numbers)
+
 const BLACKJACK_SCORE = 21;
 const DEALER_MIN_SCORE = 17;
 
-// Mantida a função, mas renomeada para indicar claramente o propósito
 export const calculateTally = () => ({ type: 'TALLY' });
 
-// "deal" → "startNewRound" (reflete início de uma nova rodada)
+const dealerTurnAnimated = async (dispatch, getState) => {
+  let state = getState();
+  let dealerScore = state.dealerScore;
+
+  while (dealerScore < DEALER_MIN_SCORE) {
+    dispatch({ type: 'HIT', who: 'dealer' });
+    dispatch({ type: 'TALLY' });
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    state = getState();
+    dealerScore = state.dealerScore;
+  }
+};
+
 export const startNewRound = () => (dispatch, getState) => {
   dispatch({ type: 'DEAL' });
-  dispatch(calculateTally());
+  dispatch({ type: 'TALLY' });
 
-  if (getState().playerScore >= BLACKJACK_SCORE) {
+  const { playerScore } = getState();
+
+  if (playerScore >= BLACKJACK_SCORE) {
     dispatch({ type: 'OUTCOME' });
   }
 };
 
-// "hit" → "drawCard" (indica claramente que o jogador compra uma carta)
+
 export const drawCard = (who) => (dispatch, getState) => {
-  dispatch({ type: 'HIT', who });
-  dispatch(calculateTally());
+  const state = getState();
 
-  if (getState().playerScore >= BLACKJACK_SCORE) {
+
+  if (state.status !== 'Playing') return;
+
+  dispatch({ type: 'HIT', who });
+  dispatch({ type: 'TALLY' });
+
+  const { playerScore } = getState();
+
+  
+  if (playerScore >= BLACKJACK_SCORE) {
     dispatch({ type: 'OUTCOME' });
   }
 };
 
-// "stand" → "finishTurn" (indica que o jogador encerra a rodada)
-export const finishTurn = () => (dispatch, getState) => {
-  while (getState().dealerScore < DEALER_MIN_SCORE) {
-    dispatch(drawCard('dealer'));
-  }
+
+ 
+export const finishTurn = () => async (dispatch, getState) => {
+  const state = getState();
+
+  if (state.status !== 'Playing') return;
+
+  await dealerTurnAnimated(dispatch, getState);
+
   dispatch({ type: 'OUTCOME' });
 };
 
-// "quit" → "quitGame" (indica a intenção de sair do jogo)
-export const quitGame = () => (dispatch) => {
-  dispatch({ type: 'QUIT' });
-};
+export const quitGame = () => ({ type: 'QUIT' });
+export const resetGame = () => ({ type: 'NEW_GAME' });
+export const clearGameHistory = () => ({ type: 'CLEAR_HISTORY' });
 
-// "newGame" → "resetGame" (deixa explícito que reinicia o jogo)
-export const resetGame = () => (dispatch) => {
-  dispatch({ type: 'NEW_GAME' });
-};
 
-// "clearHistory" → "clearGameHistory" (específico ao histórico do jogo)
-export const clearGameHistory = () => (dispatch) => {
-  dispatch({ type: 'CLEAR_HISTORY' });
-};
+export const deal = startNewRound;
+export const hit = drawCard;
+export const stand = finishTurn;
+export const quit = quitGame;
+export const newGame = resetGame;
+export const clearHistory = clearGameHistory;

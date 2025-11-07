@@ -5,17 +5,18 @@ import * as actions from '../actions';
 import { statuses } from '../reducers/game';
 
 const getCardImage = (value, suit) => {
-  if (!value || !suit) return '🂠'; // Card back
+  if (!value || !suit) return '🂠'; // Verso da carta
 
   const suitEmojis = {
-    '♠': { base: '🂡', offset: 0 },  // Spades
-    '♥': { base: '🂱', offset: 0 },  // Hearts
-    '♦': { base: '🃁', offset: 0 },  // Diamonds
-    '♣': { base: '🃑', offset: 0 }   // Clubs
+    '♠': { base: '🂡', offset: 0 },
+    '♥': { base: '🂱', offset: 0 },
+    '♦': { base: '🃁', offset: 0 },
+    '♣': { base: '🃑', offset: 0 }
   };
 
   const valueMap = {
-    'A': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 13, 'K': 14
+    'A': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7,
+    '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 13, 'K': 14
   };
 
   const suitInfo = suitEmojis[suit];
@@ -23,12 +24,12 @@ const getCardImage = (value, suit) => {
 
   if (!suitInfo || !valueNum) return '🂠';
 
-  // Calculate Unicode codepoint for the specific card
   const baseCode = suitInfo.base.codePointAt(0);
   const cardCode = baseCode + valueNum - 1;
 
   return String.fromCodePoint(cardCode);
 };
+
 
 export const Card = ({ color, face, faceDown, value, suit }) => {
   if (faceDown) {
@@ -39,7 +40,6 @@ export const Card = ({ color, face, faceDown, value, suit }) => {
     );
   }
 
-  // Extract value and suit from face if not provided separately
   let cardValue = value;
   let cardSuit = suit;
 
@@ -65,32 +65,36 @@ Card.propTypes = {
   suit: PropTypes.string
 };
 
-export const Hand = ({ label, cards }) =>
+
+export const Hand = ({ label, cards }) => (
   <div>
-    <label>{ label }</label>
+    <label>{label}</label>
     <div className="hand-container">
-      { cards.map((card, i) =>
+      {cards.map((card, i) => (
         <Card
-            face={ card.face }
-            faceDown={ card.faceDown }
-            color={ card.color }
-            value={ card.value }
-            suit={ card.suit }
-            key={ i }
+          key={i}
+          face={card.face}
+          faceDown={card.faceDown}
+          color={card.color}
+          value={card.value}
+          suit={card.suit}
         />
-      )}
+      ))}
     </div>
-  </div>;
+  </div>
+);
 
 Hand.propTypes = {
   label: PropTypes.string.isRequired,
-  cards: PropTypes.arrayOf(PropTypes.shape({
-    face: PropTypes.string,
-    faceDown: PropTypes.bool,
-    color: PropTypes.string,
-    value: PropTypes.string,
-    suit: PropTypes.string
-  })).isRequired
+  cards: PropTypes.arrayOf(
+    PropTypes.shape({
+      face: PropTypes.string,
+      faceDown: PropTypes.bool,
+      color: PropTypes.string,
+      value: PropTypes.string,
+      suit: PropTypes.string
+    })
+  ).isRequired
 };
 
 const getScoreClass = (score, isPlayer, gameStatus) => {
@@ -124,8 +128,8 @@ export const GameHistory = ({ history, onClearHistory }) => {
     );
   }
 
-  const wins = history.filter(game => game.result === statuses.WIN).length;
-  const losses = history.filter(game => game.result === statuses.LOSE).length;
+  const wins = history.filter((game) => game.result === statuses.WIN).length;
+  const losses = history.filter((game) => game.result === statuses.LOSE).length;
 
   return (
     <div className="game-history">
@@ -162,26 +166,24 @@ export const GameHistory = ({ history, onClearHistory }) => {
 };
 
 GameHistory.propTypes = {
-  history: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.number.isRequired,
-    playerScore: PropTypes.number.isRequired,
-    dealerScore: PropTypes.number.isRequired,
-    result: PropTypes.string.isRequired,
-    timestamp: PropTypes.string.isRequired
-  })),
+  history: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      playerScore: PropTypes.number.isRequired,
+      dealerScore: PropTypes.number.isRequired,
+      result: PropTypes.string.isRequired,
+      timestamp: PropTypes.string.isRequired
+    })
+  ),
   onClearHistory: PropTypes.func.isRequired
 };
 
-// Extracted component: DealerArea
 export const DealerArea = ({ dealerHand, dealerScore, status }) => (
   <div className="dealer-area">
     <Hand label="🎰 Dealer" cards={dealerHand} />
     <div className={getScoreClass(dealerScore, false, status)}>
-      Pontuação do Dealer: {
-        status === statuses.PLAYING
-          ? '?'
-          : dealerScore
-      }
+      Pontuação do Dealer:{' '}
+      {status === statuses.PLAYING ? '?' : dealerScore}
     </div>
   </div>
 );
@@ -192,7 +194,6 @@ DealerArea.propTypes = {
   status: PropTypes.string.isRequired
 };
 
-// Extracted component: GameControls
 export const GameControls = ({
   drawPile,
   dealerHand,
@@ -205,34 +206,42 @@ export const GameControls = ({
 }) => (
   <div className="controls-area">
     <div>
-      <button disabled={drawPile && drawPile.length === 0} onClick={deal}>
+      <button disabled={!drawPile || drawPile.length === 0} onClick={deal}>
         🎯 Deal
       </button>
       <button
-        disabled={dealerHand.length === 0 || status !== statuses.PLAYING || (drawPile && drawPile.length === 0)}
+        disabled={
+          !dealerHand.length ||
+          status !== statuses.PLAYING ||
+          !drawPile ||
+          drawPile.length === 0
+        }
         onClick={() => hit('player')}
       >
         🃏 Hit
       </button>
       <button
-        disabled={dealerHand.length === 0 || status !== statuses.PLAYING || (drawPile && drawPile.length === 0)}
+        disabled={
+          !dealerHand.length ||
+          status !== statuses.PLAYING ||
+          !drawPile ||
+          drawPile.length === 0
+        }
         onClick={stand}
       >
         ✋ Stand
       </button>
-      <button onClick={quit}>
-        🚪 Quit
-      </button>
+      <button onClick={quit}>🚪 Quit</button>
     </div>
 
-    {drawPile && drawPile.length === 0 && (
+    {!drawPile || drawPile.length === 0 ? (
       <div style={{ marginTop: '15px', color: '#ff6b6b' }}>
         <strong>Deck vazio!</strong>
         <button onClick={newGame} style={{ marginLeft: '10px' }}>
           🔄 Novo Jogo
         </button>
       </div>
-    )}
+    ) : null}
 
     {status !== statuses.PLAYING && (
       <div style={{ marginTop: '15px', fontSize: '18px', fontWeight: 'bold' }}>
@@ -253,7 +262,6 @@ GameControls.propTypes = {
   newGame: PropTypes.func.isRequired
 };
 
-// Extracted component: PlayerArea
 export const PlayerArea = ({ playerHand, playerScore, status }) => (
   <div className="player-area">
     <Hand label="👤 Sua Mão" cards={playerHand} />
@@ -270,27 +278,22 @@ PlayerArea.propTypes = {
 };
 
 export const BlackjackGame = ({
-    newGame,
-    deal,
-    hit,
-    stand,
-    quit,
-    clearHistory,
-    drawPile = [{}], // Non-empty to avoid showing restart button in tests
-    dealerHand = [{}], // Non-empty to enable Hit/Stand buttons in tests
-    playerHand = [],
-    dealerScore = 0,
-    playerScore = 0,
-    status = statuses.PLAYING,
-    gameHistory = []
-}) =>
+  newGame,
+  deal,
+  hit,
+  stand,
+  quit,
+  clearHistory,
+  drawPile = [{}],
+  dealerHand = [{}],
+  playerHand = [],
+  dealerScore = 0,
+  playerScore = 0,
+  status = statuses.PLAYING,
+  gameHistory = []
+}) => (
   <div className="blackjack-table">
-    <DealerArea
-      dealerHand={dealerHand}
-      dealerScore={dealerScore}
-      status={status}
-    />
-
+    <DealerArea dealerHand={dealerHand} dealerScore={dealerScore} status={status} />
     <GameControls
       drawPile={drawPile}
       dealerHand={dealerHand}
@@ -301,18 +304,10 @@ export const BlackjackGame = ({
       quit={quit}
       newGame={newGame}
     />
-
-    <PlayerArea
-      playerHand={playerHand}
-      playerScore={playerScore}
-      status={status}
-    />
-
-    <GameHistory
-      history={gameHistory}
-      onClearHistory={clearHistory}
-    />
-  </div>;
+    <PlayerArea playerHand={playerHand} playerScore={playerScore} status={status} />
+    <GameHistory history={gameHistory} onClearHistory={clearHistory} />
+  </div>
+);
 
 BlackjackGame.propTypes = {
   newGame: PropTypes.func.isRequired,
@@ -341,5 +336,4 @@ BlackjackGame.defaultProps = {
 };
 
 const mapStateToProps = (state) => state;
-
 export default connect(mapStateToProps, actions)(BlackjackGame);

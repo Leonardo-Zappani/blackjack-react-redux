@@ -1,15 +1,13 @@
 import { newShuffledPokerDeck, calculatePlayerScore } from '../cards';
 
-//Constantes semânticas (substituem números fixos)
 const BLACKJACK_SCORE = 21;
+const DEALER_MIN_SCORE = 17;
 const MAX_GAME_HISTORY = 25;
-const PLAYER_TIE_WINS = true; // deixa explícito o comportamento de empate
+const PLAYER_TIE_WINS = true;
 
 const loadGameHistory = () => {
   try {
-    if (typeof localStorage === 'undefined') {
-      return [];
-    }
+    if (typeof localStorage === 'undefined') return [];
     const saved = localStorage.getItem('blackjack-history');
     return saved ? JSON.parse(saved) : [];
   } catch (error) {
@@ -20,9 +18,7 @@ const loadGameHistory = () => {
 
 const saveGameHistory = (history) => {
   try {
-    if (typeof localStorage === 'undefined') {
-      return;
-    }
+    if (typeof localStorage === 'undefined') return;
     localStorage.setItem('blackjack-history', JSON.stringify(history));
   } catch (error) {
     console.warn('Erro ao salvar histórico:', error);
@@ -39,8 +35,11 @@ const addToHistory = (newGame) => {
 export const statuses = {
   PLAYING: 'Playing',
   WIN: 'Win',
-  LOSE: 'Lose'
+  LOSE: 'Lose',
+  PUSH: 'Push',
+  IDLE: 'Idle'
 };
+
 
 const initialState = {
   drawPile: newShuffledPokerDeck(),
@@ -48,46 +47,33 @@ const initialState = {
   dealerScore: 0,
   playerHand: [],
   playerScore: 0,
-  status: statuses.PLAYING,
+  status: statuses.IDLE,
   gameHistory: loadGameHistory()
 };
 
+const revealDealerHand = (dealerHand) =>
+  dealerHand.map((c) => ({ ...c, faceDown: false }));
+
 const calculateOutcomeStatus = (playerScore, dealerScore) => {
-  if (playerScore === BLACKJACK_SCORE && dealerScore !== BLACKJACK_SCORE)
-    return statuses.WIN;
-
-  if (playerScore > BLACKJACK_SCORE)
-    return statuses.LOSE;
-
-  if (dealerScore === BLACKJACK_SCORE && playerScore !== BLACKJACK_SCORE)
-    return statuses.LOSE;
-
-  if (dealerScore > BLACKJACK_SCORE)
-    return statuses.WIN;
-
-  if (playerScore > dealerScore)
-    return statuses.WIN;
-
-  if (playerScore < dealerScore)
-    return statuses.LOSE;
-
-  return PLAYER_TIE_WINS ? statuses.WIN : statuses.LOSE;
-};
-
-const revealDealerHand = (dealerHand) => {
-  const turnAllFaceDown = c => ({ ...c, faceDown: false });
-  return dealerHand.map(turnAllFaceDown);
+  if (playerScore > BLACKJACK_SCORE) return statuses.LOSE;
+  if (dealerScore > BLACKJACK_SCORE) return statuses.WIN;
+  if (playerScore === dealerScore) return PLAYER_TIE_WINS ? statuses.WIN : statuses.PUSH;
+  return playerScore > dealerScore ? statuses.WIN : statuses.LOSE;
 };
 
 const dealCards = (state) => {
-  let [playerCard1, dealerCard1, playerCard2, dealerCard2] = state.drawPile;
-  dealerCard1 = { ...dealerCard1, faceDown: true };
+  const [player1, dealer1, player2, dealer2, ...rest] = state.drawPile;
+
+  const dealerHand = [{ ...dealer1, faceDown: true }, dealer2];
+  const playerHand = [player1, player2];
 
   return {
     ...state,
-    drawPile: state.drawPile.slice(4),
-    dealerHand: [dealerCard1, dealerCard2],
-    playerHand: [playerCard1, playerCard2],
+    drawPile: rest,
+    dealerHand,
+    playerHand,
+    dealerScore: calculatePlayerScore([dealer2]),
+    playerScore: calculatePlayerScore(playerHand),
     status: statuses.PLAYING
   };
 };
@@ -98,14 +84,25 @@ const reducer = (state = initialState, action) => {
       return dealCards(state);
 
     case 'HIT': {
+      if (!state.drawPile || state.drawPile.length === 0) return state;
+
       const [drawnCard, ...remainingPile] = state.drawPile;
-      const hitHandKey = `${action.who}Hand`;
-      const hitHand = state[hitHandKey];
+      const handKey = `${action.who}Hand`;
+      const currentHand = state[handKey] || [];
+
+      const cardToAdd =
+        action.who === 'dealer'
+          ? { ...drawnCard, faceDown: false }
+          : { ...drawnCard };
+
+      const newHand = [...currentHand, cardToAdd];
+      const newScore = calculatePlayerScore(newHand);
 
       return {
         ...state,
         drawPile: remainingPile,
-        [hitHandKey]: [...hitHand, drawnCard]
+        [handKey]: newHand,
+        [`${action.who}Score`]: newScore
       };
     }
 
@@ -116,12 +113,28 @@ const reducer = (state = initialState, action) => {
         playerScore: calculatePlayerScore(state.playerHand)
       };
 
+   
     case 'OUTCOME': {
-      const finalStatus = calculateOutcomeStatus(state.playerScore, state.dealerScore);
+      
+      let revealedDealer = revealDealerHand(state.dealerHand);
+      let dealerScore = calculatePlayerScore(revealedDealer);
+      const playerScore = state.playerScore;
+
+    
+      let drawPile = [...state.drawPile];
+      while (dealerScore < DEALER_MIN_SCORE && drawPile.length > 0) {
+        const [newCard, ...rest] = drawPile;
+        drawPile = rest;
+        revealedDealer = [...revealedDealer, { ...newCard, faceDown: false }];
+        dealerScore = calculatePlayerScore(revealedDealer);
+      }
+
+      const finalStatus = calculateOutcomeStatus(playerScore, dealerScore);
+
       const gameResult = {
-        id: Date.now(), // ID único
-        playerScore: state.playerScore,
-        dealerScore: state.dealerScore,
+        id: Date.now(),
+        playerScore,
+        dealerScore,
         result: finalStatus,
         timestamp: new Date().toLocaleString('pt-BR', {
           day: '2-digit',
@@ -135,32 +148,23 @@ const reducer = (state = initialState, action) => {
 
       return {
         ...state,
-        dealerHand: revealDealerHand(state.dealerHand),
+        drawPile,
+        dealerHand: revealedDealer,
+        dealerScore,
         status: finalStatus,
         gameHistory: updatedHistory
       };
     }
 
-    case 'QUIT':
-      return {
-        ...state,
-        dealerHand: [],
-        playerHand: [],
-        dealerScore: 0,
-        playerScore: 0,
-        status: ''
-      };
-
     case 'NEW_GAME':
       return {
-        ...state,
+        ...initialState,
         drawPile: newShuffledPokerDeck(),
-        dealerHand: [],
-        dealerScore: 0,
-        playerHand: [],
-        playerScore: 0,
         status: statuses.PLAYING
       };
+
+    case 'QUIT':
+      return initialState;
 
     case 'CLEAR_HISTORY':
       saveGameHistory([]);
