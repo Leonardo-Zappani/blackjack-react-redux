@@ -118,6 +118,9 @@ const reducer = (state = initialState, action) => {
 
    
     case 'OUTCOME': {
+
+      // Evita reprocessar se o jogo já terminou
+      if (state.status !== statuses.PLAYING) return state;
       
       let revealedDealer = revealDealerHand(state.dealerHand);
       let dealerScore = calculatePlayerScore(revealedDealer);
