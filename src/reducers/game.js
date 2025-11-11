@@ -1,9 +1,11 @@
 import { newShuffledPokerDeck, calculatePlayerScore } from '../cards';
-
-const BLACKJACK_SCORE = 21;
-const DEALER_MIN_SCORE = 17;
-const MAX_GAME_HISTORY = 25;
-const PLAYER_TIE_WINS = true;
+import {
+  BLACKJACK_SCORE,
+  DEALER_MIN_SCORE,
+  MAX_GAME_HISTORY,
+  PLAYER_TIE_WINS,
+  statuses
+} from '../constants/gameRules';
 
 const loadGameHistory = () => {
   try {
@@ -31,15 +33,6 @@ const addToHistory = (newGame) => {
   saveGameHistory(updatedHistory);
   return updatedHistory;
 };
-
-export const statuses = {
-  PLAYING: 'Playing',
-  WIN: 'Win',
-  LOSE: 'Lose',
-  PUSH: 'Push',
-  IDLE: 'Idle'
-};
-
 
 const initialState = {
   drawPile: newShuffledPokerDeck(),
@@ -183,5 +176,8 @@ const reducer = (state = initialState, action) => {
       return state;
   }
 };
+
+// Re-exportar statuses para manter compatibilidade com imports existentes
+export { statuses };
 
 export default reducer;
