@@ -54,6 +54,38 @@ const calculateOutcomeStatus = (playerScore, dealerScore) => {
   return playerScore > dealerScore ? statuses.WIN : statuses.LOSE;
 };
 
+const completeDealerTurn = (dealerHand, currentScore, drawPile) => {
+  let hand = [...dealerHand];
+  let score = currentScore;
+  let pile = [...drawPile];
+
+  while (score < DEALER_MIN_SCORE && pile.length > 0) {
+    const [newCard, ...rest] = pile;
+    pile = rest;
+    hand = [...hand, { ...newCard, faceDown: false }];
+    score = calculatePlayerScore(hand);
+  }
+
+  return {
+    dealerHand: hand,
+    dealerScore: score,
+    remainingPile: pile
+  };
+};
+
+const createGameResult = (playerScore, dealerScore, gameStatus) => ({
+  id: Date.now(),
+  playerScore,
+  dealerScore,
+  result: gameStatus,
+  timestamp: new Date().toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+});
+
 const dealCards = (state) => {
   const [player1, dealer1, player2, dealer2, ...rest] = state.drawPile;
 
@@ -109,47 +141,27 @@ const reducer = (state = initialState, action) => {
         playerScore: calculatePlayerScore(state.playerHand)
       };
 
-   
+
     case 'OUTCOME': {
-
-      // Evita reprocessar se o jogo já terminou
+      // Guard clause: evita reprocessar se o jogo já terminou
       if (state.status !== statuses.PLAYING) return state;
-      
-      let revealedDealer = revealDealerHand(state.dealerHand);
-      let dealerScore = calculatePlayerScore(revealedDealer);
-      const playerScore = state.playerScore;
 
-    
-      let drawPile = [...state.drawPile];
-      while (dealerScore < DEALER_MIN_SCORE && drawPile.length > 0) {
-        const [newCard, ...rest] = drawPile;
-        drawPile = rest;
-        revealedDealer = [...revealedDealer, { ...newCard, faceDown: false }];
-        dealerScore = calculatePlayerScore(revealedDealer);
-      }
+      const revealedDealer = revealDealerHand(state.dealerHand);
+      const initialDealerScore = calculatePlayerScore(revealedDealer);
 
-      const finalStatus = calculateOutcomeStatus(playerScore, dealerScore);
+      const { dealerHand: finalDealerHand, dealerScore: finalDealerScore, remainingPile } =
+        completeDealerTurn(revealedDealer, initialDealerScore, state.drawPile);
 
-      const gameResult = {
-        id: Date.now(),
-        playerScore,
-        dealerScore,
-        result: finalStatus,
-        timestamp: new Date().toLocaleString('pt-BR', {
-          day: '2-digit',
-          month: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-      };
+      const finalStatus = calculateOutcomeStatus(state.playerScore, finalDealerScore);
 
+      const gameResult = createGameResult(state.playerScore, finalDealerScore, finalStatus);
       const updatedHistory = addToHistory(gameResult);
 
       return {
         ...state,
-        drawPile,
-        dealerHand: revealedDealer,
-        dealerScore,
+        drawPile: remainingPile,
+        dealerHand: finalDealerHand,
+        dealerScore: finalDealerScore,
         status: finalStatus,
         gameHistory: updatedHistory
       };
