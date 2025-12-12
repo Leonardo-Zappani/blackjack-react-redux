@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import * as actions from '../actions';
 import { statuses } from '../reducers/game';
+import './blackjack.css';
 
 const getCardImage = (value, suit) => {
   if (!value || !suit) return '🂠'; // Verso da carta

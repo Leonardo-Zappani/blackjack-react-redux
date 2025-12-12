@@ -1,0 +1,178 @@
+/* ================================
+   TEMA GERAL DA MESA
+================================ */
+body {
+  background: radial-gradient(circle at center, #083b1a, #03240f 70%);
+  font-family: "Segoe UI", sans-serif;
+  margin: 0;
+  padding: 20px;
+  color: #fff;
+}
+
+.blackjack-table {
+  max-width: 880px;
+  margin: auto;
+  background: rgba(0, 40, 15, 0.7);
+  padding: 26px;
+  border-radius: 16px;
+  box-shadow: 0 0 20px #000a;
+  border: 2px solid #d9a700;
+}
+
+/* ================================
+   ÁREAS (Dealer / Player / Controls)
+================================ */
+.dealer-area,
+.player-area {
+  border: 2px solid #d9a700;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 22px;
+  background: rgba(0, 35, 12, 0.6);
+}
+
+.controls-area {
+  text-align: center;
+  margin: 20px 0;
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px solid #d9a700;
+  background: rgba(0, 35, 12, 0.6);
+}
+
+
+/* ================================
+   BOTÕES
+================================ */
+button {
+  background: #ffd55a;
+  color: #333;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  margin: 6px;
+  font-weight: bold;
+  box-shadow: 0 3px 6px #0006;
+  transition: 0.2s;
+}
+
+button:hover:not(:disabled) {
+  background: #ffefa3;
+}
+
+button:disabled {
+  background: #777;
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Botão limpar histórico */
+.clear-history-btn {
+  background: #cc2828;
+  color: white;
+}
+
+.clear-history-btn:hover {
+  background: #ff3b3b;
+}
+
+/* ================================
+   SCORE & RESULTADOS
+================================ */
+.score-win {
+  color: #8aff8a;
+  font-weight: bold;
+}
+
+.score-lose {
+  color: #ff6b6b;
+  font-weight: bold;
+}
+
+.score-tie {
+  color: #ffd55a;
+  font-weight: bold;
+}
+
+/* ================================
+   HISTÓRICO
+================================ */
+.game-history {
+  border: 2px solid #d9a700;
+  padding: 20px;
+  border-radius: 12px;
+  background: rgba(0, 35, 12, 0.6);
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.history-stats span {
+  margin-right: 12px;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.stat-wins {
+  background: #1d8e39;
+}
+
+.stat-losses {
+  background: #b52d2d;
+}
+
+.stat-winrate {
+  background: #3d3dfc;
+}
+
+.history-list {
+  margin-top: 16px;
+}
+
+.history-item {
+  background: #0d2717;
+  border-left: 5px solid #ccc;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  color: #ddd;
+}
+
+.history-item.win {
+  border-color: #31e663;
+}
+
+.history-item.lose {
+  border-color: #ff5a5a;
+}
+
+.game-number {
+  color: #ffd55a;
+}
+
+.game-result.win {
+  color: #79ff7a;
+  font-weight: bold;
+}
+
+.game-result.lose {
+  color: #ff8f8f;
+  font-weight: bold;
+}
+
+/* ================================
+   LABELS
+================================ */
+label {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffd55a;
+}
