@@ -1,6 +1,8 @@
-
-const BLACKJACK_SCORE = 21;
-const DEALER_MIN_SCORE = 17;
+import {
+  BLACKJACK_SCORE,
+  DEALER_MIN_SCORE,
+  statuses
+} from '../constants/gameRules';
 
 export const calculateTally = () => ({ type: 'TALLY' });
 
@@ -35,7 +37,7 @@ export const drawCard = (who) => (dispatch, getState) => {
   const state = getState();
 
 
-  if (state.status !== 'Playing') return;
+  if (state.status !== statuses.PLAYING) return;
 
   dispatch({ type: 'HIT', who });
   dispatch({ type: 'TALLY' });
@@ -49,11 +51,11 @@ export const drawCard = (who) => (dispatch, getState) => {
 };
 
 
- 
+
 export const finishTurn = () => async (dispatch, getState) => {
   const state = getState();
 
-  if (state.status !== 'Playing') return;
+  if (state.status !== statuses.PLAYING) return;
 
   await dealerTurnAnimated(dispatch, getState);
 
